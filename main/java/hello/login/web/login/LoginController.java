@@ -4,12 +4,15 @@ import hello.login.domain.login.LoginService;
 import hello.login.domain.member.Member;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.web.servlet.server.Session;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 @Slf4j
@@ -25,7 +28,7 @@ public class LoginController {
     }
 
     @PostMapping("/login")
-    public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult){
+    public String login(@Valid @ModelAttribute LoginForm form, BindingResult bindingResult, HttpServletResponse res){
         if(bindingResult.hasErrors()){
             return "login/loginForm";
         }
@@ -37,9 +40,21 @@ public class LoginController {
             return "login/loginForm";
         }
 
+        Cookie cookie = new Cookie("memberId", String.valueOf(loginMember.getId()));
+        res.addCookie(cookie);
         return "redirect:/";
+    }
 
+    @PostMapping("/logout")
+    public String logout(HttpServletResponse res){
+        expired("memberId", res);
+        return "redirect:/";
+    }
 
+    private void expired(String cookieName, HttpServletResponse res) {
+        Cookie cookie = new Cookie("memberId", null);
+        cookie.setMaxAge(0);
+        res.addCookie(cookie);
     }
 
 }
